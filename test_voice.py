@@ -1,25 +1,30 @@
-import unittest
 import os
+from script_gen import ScriptGenerator
 from voice_gen import VoiceGenerator
 
-class TestVoiceGen(unittest.TestCase):
-    def setUp(self):
-        self.vo = VoiceGenerator()
-
-    def test_audio_file_creation(self):
-        # We define what success looks like: a real MP3 file on your disk
-        text = "This is a test for Everyday Explained."
-        output_path = "test_voice_output.mp3"
-        
-        self.vo.generate_audio(text, output_path)
-        
-        # Validation: Does the file exist and is it not empty?
-        self.assertTrue(os.path.exists(output_path))
-        self.assertGreater(os.path.getsize(output_path), 0)
-        
-        # Cleanup: Remove the test file after the pass
-        # if os.path.exists(output_path):
-        #     os.remove(output_path)
+def run_pipeline(topic):
+    # Initialize our AI team
+    writer = ScriptGenerator()
+    narrator = VoiceGenerator()
+    
+    print(f"🚀 Starting EverydayExplained pipeline for: {topic}")
+    
+    # Step 1: Generate the Script
+    script = writer.generate_viral_script(topic)
+    writer.save_script(script, f"{topic}_script.json")
+    
+    # Step 2: Create a folder for this video's assets
+    os.makedirs(topic, exist_ok=True)
+    
+    # Step 3: Generate Audio for each section
+    # We iterate through the JSON keys: hook, mystery, reveal, cta
+    for section, text in script.items():
+        filename = f"{topic}/{section}.wav"
+        print(f"🎙️ Recording {section}...")
+        narrator.generate_audio(text, filename)
+    
+    print(f"\n🎉 Done! All assets for '{topic}' are ready in the /{topic} folder.")
 
 if __name__ == "__main__":
-    unittest.main()
+    target_topic = input("Enter a topic for EverydayExplained: ")
+    run_pipeline(target_topic)
